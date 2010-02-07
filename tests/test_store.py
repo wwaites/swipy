@@ -2,7 +2,7 @@ from rdflib.graph import Graph
 from rdflib.namespace import Namespace, RDFS
 from rdflib.term import Node
 from swipy.store import SWIStore
-from os import path
+from os import path, stat
 
 cofog_test = path.join(path.dirname(__file__), "cofog-1999.rdf")
 
@@ -27,9 +27,25 @@ class TestClass:
 			for n in statement:
 				assert isinstance(n, Node)
 		assert i == 572
-	def test_04_store_triples(self):
+	def test_04_triples(self):
 		store = SWIStore()
 		for i, (statement, ctx) in enumerate(store.triples((None, RDFS.label, None))):
 			for n in statement:
 				assert isinstance(n, Node)
 		assert i == 1145
+	def test_05_persist(self):
+		graph = Graph("SWIStore", identifier="test")
+		assert not graph.store.attached
+		graph.open("test.db")
+		assert graph.store.attached
+		graph.parse(cofog_test)
+		stat("test.db")
+		graph.close()
+	def test_06_retract(self):
+		graph = Graph("SWIStore", identifier="test")
+		graph.open("test.db")
+		ntriples = len(list(graph.triples((None, RDFS.label, None))))
+		assert ntriples > 0
+		graph.remove((None, RDFS.label, None))
+		assert len(list(graph.triples((None, RDFS.label, None)))) == 0
+		graph.close()
