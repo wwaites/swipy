@@ -87,8 +87,10 @@ cdef extern from "SWI-Prolog.h":
 
 	int		PL_cons_functor_v(term_t h, functor_t f, term_t a0)
 
-	ctypedef	void *predicate_t
 	ctypedef	void *module_t
+	module_t	PL_new_module(atom_t name)
+
+	ctypedef	void *predicate_t
 	predicate_t	PL_pred(functor_t f, module_t m)
 
 	ctypedef	unsigned int *qid_t

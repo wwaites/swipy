@@ -220,22 +220,27 @@ cdef class Variable:
 _comma = Functor(Atom(","), 2)
 cdef class Query:
 	cdef qid_t _qid
-	def __cinit__(self, *terms):
+	def __cinit__(self, *terms, module=None):
 		#, int flags=PL_Q_NODEBUG|PL_Q_CATCH_EXCEPTION, module_t module=NULL):
+		cdef module_t mod
+		if module:
+			mod = PL_new_module((<Atom>Atom(module))._atom)
+		else:
+			mod = NULL
+
 		t = terms[0]
 		for tx in terms[1:]:
 			t = _comma(t, tx)
 		f = t.functor
 
 		cdef int flags = PL_Q_NODEBUG|PL_Q_CATCH_EXCEPTION
-		cdef module_t module = NULL
-		cdef predicate_t p = swi.PL_pred((<Functor>f)._functor, module)
+		cdef predicate_t p = swi.PL_pred((<Functor>f)._functor, mod)
 		cdef int arity = (<Functor>f).arity
 		cdef term_t term = (<Term>t)._term
 		cdef term_t a0 = swi.PL_new_term_refs(arity)
 		for i, a in enumerate(range(1, arity+1)):
 			swi.PL_get_arg(a, term, a0+<int>i)
-		self._qid = swi.PL_open_query(module, flags, p, a0)
+		self._qid = swi.PL_open_query(mod, flags, p, a0)
 	def __dealloc__(self):
 		if self._qid:
 			swi.PL_close_query(self._qid)
@@ -250,13 +255,17 @@ cdef class Query:
 	def cut(self):
 		PL_cut_query(self._qid)
 
-def call(*terms):
-	cdef module_t module = NULL
+def call(*terms, module=None):
+	cdef module_t mod
+	if module:
+		mod = PL_new_module((<Atom>Atom(module))._atom)
+	else:
+		mod = NULL
 	t = terms[0]
 	assert isinstance(t, Term)
 	for tx in terms[1:]:
 		t = _comma(t, tx)
-	return PL_call((<Term>t)._term, module)
+	return PL_call((<Term>t)._term, mod)
 
 ### common functors
 asserta = Functor("asserta")
