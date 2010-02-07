@@ -4,5 +4,7 @@ include setup.cfg
 include setup.py
 include swipy.pyx
 include swipy.pxd
+include swipy/*.py
+include swipy/store/*.py
 include tests/*.py
 include tests/*.rdf

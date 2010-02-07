@@ -14,6 +14,13 @@
 	python setup.py build
 	python setup.py install
 
+=== Testing ===
+
+	nosetests -v -s tests
+
+	## and look at some of the test cases for ideas how
+	## to use
+
 === Using ===
 
 	from swipy.store import SWIStore
