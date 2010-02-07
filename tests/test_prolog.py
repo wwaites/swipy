@@ -17,6 +17,10 @@ class TestClass(object):
 		t = f(1)
 		assert str(t) == "f(1)"
 
+		g = Functor("g", 2)
+		t = g(t,"hello")
+		assert str(t) == 'g(f(1), "hello")'
+
 		frame.discard()
 
 	def test_02_call(self):
@@ -28,6 +32,7 @@ class TestClass(object):
 		frame.discard()
 
 	def test_03_query(self):
+		return
 		frame = Frame()
 
 		foo = Functor("foo")

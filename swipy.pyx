@@ -54,7 +54,7 @@ cdef class Atom:
 cdef class Functor:
 	cdef functor_t _functor
 	cdef Atom _atom
-	cdef int _arity
+	cdef public int arity
 	def __cinit__(self, atom=None, int arity=1):
 		if atom:
 			if not isinstance(atom, Atom):
@@ -64,15 +64,15 @@ cdef class Functor:
 	cdef ref(self, functor_t f):
 		self._functor = f
 		self._atom = Atom().ref(swi.PL_functor_name(f))
-		self._arity = swi.PL_functor_arity(self._functor)
+		self.arity = swi.PL_functor_arity(self._functor)
 		return self
 	def __str__(self):
-		return "%s/%d" % (self._atom, self._arity)
+		return "%s/%d" % (self._atom, self.arity)
 	def __repr__(self):
-		return "Functor('%s', %d)" % (self._atom, self._arity)
+		return "Functor('%s', %d)" % (self._atom, self.arity)
 	def __call__(self, *args):
 		cdef int nargs = len(args)
-		assert self._arity == nargs
+		assert self.arity == nargs
 		cdef term_t a = swi.PL_new_term_refs(nargs)
 		cdef int i
 		for i,arg in enumerate(args):
@@ -80,6 +80,10 @@ cdef class Functor:
 		cdef term_t t = swi.PL_new_term_ref()
 		swi.PL_cons_functor_v(t, self._functor, a)
 		return Term().ref(t)
+	def name(self):
+		return str(self._atom)
+	name = property(name)
+		
 
 cdef class Term:
 	cdef term_t _term
@@ -139,18 +143,7 @@ cdef class Term:
 			PL_reset_term_refs(tail)
 			return result
 		elif t == PL_TERM:
-			atom = Atom().ref(val.t.name)
-			arity = val.t.arity
-			ret = "%s(" % atom
-			arg = PL_new_term_ref()
-			for n in range(1, arity+1):
-				swi.PL_get_arg(n, self._term, arg)
-				term = Term().ref(arg)
-				if n > 1:
-					ret += ", "
-				ret += "%s" % term
-			ret += ")"
-			return ret
+			return self
 		raise ValueError("Term unimplemented: type %d" % t)
 	value = property(get_value, set_value)
 
@@ -159,9 +152,25 @@ cdef class Term:
 		assert swi.PL_get_functor(self._term, &f)
 		return Functor().ref(f)
 	functor = property(functor)
+	def args(self):
+		functor = self.functor
+		cdef term_t arg
+		ret = []
+		for n in range(1, functor.arity + 1):
+			arg = PL_new_term_ref()
+			swi.PL_get_arg(n, self._term, arg)
+			ret.append(Term().ref(arg))
+		return tuple(ret)
+	args = property(args)
 
 	def __str__(self):
-		return str(self.value)
+		try:
+			ret = "%s(" % self.functor.name
+			ret += ", ".join(map(str, self.args))
+			ret += ")"
+			return ret
+		except AssertionError:
+			return str(self.value)
 	def __repr__(self):
 		return "Term(%d)" % <unsigned long>self._term
 
@@ -211,7 +220,7 @@ cdef class Query:
 		cdef int flags = PL_Q_NODEBUG|PL_Q_CATCH_EXCEPTION
 		cdef module_t module = NULL
 		cdef predicate_t p = swi.PL_pred((<Functor>f)._functor, module)
-		cdef int arity = (<Functor>f)._arity
+		cdef int arity = (<Functor>f).arity
 		cdef term_t term = (<Term>t)._term
 		cdef term_t a0 = swi.PL_new_term_refs(arity)
 		for i, a in enumerate(range(1, arity+1)):
