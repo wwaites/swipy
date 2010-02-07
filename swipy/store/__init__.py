@@ -19,11 +19,8 @@ class SWIStore(Store):
 	context_aware = True
 	def add(self, statement, context=None, quoted=False):
 		statement = map(self._fromNode, statement)
-		if context is not None:
-			if isinstance(context, Graph):
-				identifier = Atom(str(context.identifier))
-			else:
-				identifier = Atom(str(context))
+		identifier = self._getIdentifier(context)
+		if identifier:
 			args = list(statement) + [identifier]
 			call(rdf_assert4(*args))
 		else:
@@ -31,11 +28,8 @@ class SWIStore(Store):
 
 	def triples(self, statement, context=None):
 		statement = map(self._fromNode, statement)
-		if context is not None:
-			if isinstance(context, Graph):
-				identifier = Atom(str(context.identifier))
-			else:
-				identifier = Atom(str(context))
+		identifier = self._getIdentifier(context)
+		if identifier:
 			args = list(statement) + [identifier]
 			query = rdf4(*args)
 		else:
@@ -44,6 +38,13 @@ class SWIStore(Store):
 			row = [X.value if isinstance(X, Variable) else X for X in statement]
 			yield map(self._toNode, row), context
 
+	def _getIdentifier(self, context):
+		if isinstance(context, Graph):
+			identifier = context.identifier
+		else:
+			identifier = context
+		if identifier:
+			return Atom(identifier)
 	def _fromNode(self, node):
 		if node is None:
 			return Variable()
@@ -56,12 +57,26 @@ class SWIStore(Store):
 				return literal(lang(Atom(node.language), Atom(str(node))))
 			if not node.language and node.datatype:
 				return literal(dtype(Atom(str(node.datatype)), Atom(str(node))))
-		else:
-			print type(node)
-			raise
+		raise ValueError("Wrong node: %s" % (repr(node),))
 	def _toNode(self, term):
 		if isinstance(term, Atom):
 			return URIRef(str(term))
-		return term
+		elif isinstance(term, Term): ##
+			assert term.functor.name == "literal"
+			term = term.args[0].value
+			if isinstance(term, Atom):
+				return Literal(str(term))
+			if isinstance(term, Term):
+				name = term.functor.name
+				args = term.args
+				if name == "lang":
+					lang = str(args[0].value)
+					value = str(args[1].value)
+					return Literal(value, lang=lang)
+				if name == "type":
+					dtype = URIRef(str(args[0].value))
+					value = URIRef(str(args[1].value))
+					return Literal(value, datatype=dtype)
+		raise ValueError("Wrong Term: %s" % (repr(term),))
 
 register("SWIStore", Store, "swipy.store", "SWIStore")
