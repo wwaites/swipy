@@ -27,7 +27,7 @@ SWI Prolog Python Bindings
       keywords='prolog, rdf',
       author='William Waites',
       author_email='wwaites_at_gmail.com',
-      url='',
+      url='http://github.com/wwaites/swipy',
       license='GPL',
       packages=["swipy.store"],
       cmdclass={'build_ext': build_ext},
