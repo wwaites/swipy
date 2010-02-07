@@ -1,0 +1,8 @@
+include COPYING
+include README
+include setup.cfg
+include setup.py
+include swipy.pyx
+include swipy.pxd
+include tests/*.py
+include tests/*.rdf

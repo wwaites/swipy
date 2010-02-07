@@ -19,11 +19,12 @@ swipy = Extension(
 
 setup(name='swipy',
       version=version,
-      description="SWI Prolog Python Bindings",
+      description="SWI Prolog Python Bindings + RDFLib Store",
       long_description="""\
-SWI Prolog Python Bindings""",
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      keywords='prolog',
+SWI Prolog Python Bindings
+... and RDFLib store""",
+      classifiers=[],
+      keywords='prolog, rdf',
       author='William Waites',
       author_email='wwaites_at_gmail.com',
       url='',
