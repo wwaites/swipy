@@ -28,7 +28,7 @@ SWI Prolog Python Bindings""",
       author_email='wwaites_at_gmail.com',
       url='',
       license='GPL',
-      packages=[],
+      packages=["swipy.store"],
       cmdclass={'build_ext': build_ext},
       ext_modules=[swipy],
 )
