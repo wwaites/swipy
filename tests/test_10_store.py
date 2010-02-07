@@ -27,12 +27,19 @@ class TestClass:
 			for n in statement:
 				assert isinstance(n, Node)
 		assert i == 572
+		graph.store.unload(graph)
+		i = 0
+		for i, statement in enumerate(graph.triples((None, RDFS.label, None))):
+			for n in statement:
+				assert isinstance(n, Node)
+		assert i == 0
+
 	def test_04_triples(self):
 		store = SWIStore()
 		for i, (statement, ctx) in enumerate(store.triples((None, RDFS.label, None))):
 			for n in statement:
 				assert isinstance(n, Node)
-		assert i == 1145
+		assert i == 572
 	def test_05_persist(self):
 		graph = Graph("SWIStore", identifier="test")
 		assert not graph.store.attached
@@ -49,3 +56,4 @@ class TestClass:
 		graph.remove((None, RDFS.label, None))
 		assert len(list(graph.triples((None, RDFS.label, None)))) == 0
 		graph.close()
+

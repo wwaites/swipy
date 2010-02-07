@@ -23,10 +23,12 @@ basedir = os.path.dirname(__file__)
 def set_path(name, relpath):
 	path = os.path.join(basedir, relpath)
 	call(assertz(file_search_path(Atom(name), Atom(path))), module="user")
+
 set_path("serql", "SeRQL")
 set_path("library", "SeRQL/lib")
 set_path("henry", "henry")
 serql = Functor("serql")
+henry = Functor("henry")
 
 ##
 ## Read in Prolog Dependencies
@@ -35,13 +37,20 @@ load_files([
 	library(Atom("semweb/rdf_db")),
 	library(Atom("semweb/rdf_persistency")),
 	library(Atom("semweb/rdf_portray")),
-	serql(Atom("rdf_store")),
+#	serql(Atom("sparql")),
+#	serql(Atom("no_entailment")),
+#	serql(Atom("rdf_entailment")),
+#	serql(Atom("rdfs_entailment")),
+#	serql(Atom("rdfslite_entailment")),
+#	henry(Atom("n3_load")),
+#	henry(Atom("entailment"))
 ])
 
 ##
 ## Functions from rdf_db
 ##
 rdf_load = Functor("rdf_load", 2)
+rdf_unload = Functor("rdf_unload")
 rdf = Functor("rdf", 3)
 rdf4 = Functor("rdf", 4)
 rdf_assert = Functor("rdf_assert", 3)
@@ -68,6 +77,9 @@ db = Functor("db")
 colon = Functor(":", 2)
 log = Functor("log")
 message = Functor("message")
+
+sparql_query = Functor("sparql_query", 3)
+entailment = Functor("entailment")
 
 ####
 #### SWI-Prolog backed RDFLib Store
@@ -140,6 +152,17 @@ class SWIStore(Store):
 		if identifier:
 			options.append(db(identifier))
 		call(rdf_load(file, options), module="rdf_db")
+	def unload(self, context=None):
+		identifier = self._getIdentifier(context)
+		if identifier:
+			call(rdf_unload(identifier))
+
+	def query(self, q, entailmod="rdf"):
+		entailmod = Atom(entailmod)
+		q = Atom(q)
+		R = Variable()
+		for i in Query(sparql_query(q, R, [entailment(entailmod)]), module="sparql"):
+			print R.value
 
 	def _getIdentifier(self, context):
 		if isinstance(context, Graph):

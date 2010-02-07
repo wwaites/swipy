@@ -282,6 +282,8 @@ asserta = Functor("asserta")
 assertz = Functor("assertz")
 dynamic = Functor("dynamic")
 multifile = Functor("multifile")
+
+consult = Functor("consult")
 library = Functor("library")
 use_module = Functor("use_module")
 
