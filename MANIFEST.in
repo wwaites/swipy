@@ -6,5 +6,7 @@ include swipy.pyx
 include swipy.pxd
 include swipy/*.py
 include swipy/store/*.py
+recursive-include swipy/store/henry *
+recursive-include swipy/store/SeRQL *
 include tests/*.py
 include tests/*.rdf
