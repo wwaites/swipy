@@ -3,26 +3,63 @@ from rdflib.store import Store
 from rdflib.plugin import register
 from rdflib.term import URIRef, Literal, BNode
 from swipy import *
+import os
 
 __all__ = ["SWIStore"]
 
-call(use_module(library(Atom("semweb/rdf_db"))))
-call(use_module(library(Atom("semweb/rdf_persistency"))))
+##
+## :- dynamic user:file_search_path/2
+## :- multifile user:file_search_path/2
+##
+file_search_path = Functor("file_search_path", 2)
+_fsp = colon(Atom("user"), file_search_path)
+call(assertz(clause([], [dynamic(_fsp)])))
+call(assertz(clause([], [multifile(_fsp)])))
 
+##
+## Set up paths, similar to SeRQL/load.pl
+##
+basedir = os.path.dirname(__file__)
+def set_path(name, relpath):
+	path = os.path.join(basedir, relpath)
+	call(assertz(file_search_path(Atom(name), Atom(path))), module="user")
+set_path("serql", "SeRQL")
+set_path("library", "SeRQL/lib")
+set_path("henry", "henry")
+serql = Functor("serql")
+
+##
+## Read in Prolog Dependencies
+##
+load_files([
+	library(Atom("semweb/rdf_db")),
+	library(Atom("semweb/rdf_persistency")),
+	library(Atom("semweb/rdf_portray")),
+	serql(Atom("rdf_store")),
+])
+
+##
+## Functions from rdf_db
+##
 rdf_load = Functor("rdf_load", 2)
-
 rdf = Functor("rdf", 3)
 rdf4 = Functor("rdf", 4)
 rdf_assert = Functor("rdf_assert", 3)
 rdf_assert4 = Functor("rdf_assert", 4)
 rdf_retractall = Functor("rdf_retractall", 3)
 rdf_retractall4 = Functor("rdf_retractall", 4)
+rdf_transaction = Functor("rdf_transaction", 2)
 
+##
+## Functors relating to persistency
+##
 rdf_attach_db = Functor("rdf_attach_db", 2)
 rdf_detach_db = Functor("rdf_detach_db", 0)
 rdf_current_db = Functor("rdf_current_db")
-rdf_transaction = Functor("rdf_transaction", 2)
 
+##
+## Terms used throughout
+##
 literal = Functor("literal")
 lang = Functor("lang", 2)
 dtype = Functor("type", 2)
@@ -32,19 +69,22 @@ colon = Functor(":", 2)
 log = Functor("log")
 message = Functor("message")
 
+####
+#### SWI-Prolog backed RDFLib Store
+####
 class SWIStore(Store):
 	context_aware = True
 	def __init__(self):
 		self.index = 0
 	def open(self, directory, create=False):
-		call(rdf_attach_db(Atom(directory), []))
+		call(rdf_attach_db(Atom(directory), []), module="rdf_persistency")
 	def close(self, commit_pending_transaction=False):
 		if self.attached:
-			call(rdf_detach_db())
+			call(rdf_detach_db(), module="rdf_persistency")
 	def attached(self):
 		frame = Frame()
 		X = Variable()
-		backing = [X.value for x in Query(rdf_current_db(X))]
+		backing = [X.value for x in Query(rdf_current_db(X), module="rdf_persistency")]
 		if backing: result = backing[0]
 		else: result = None
 		frame.discard()
@@ -60,7 +100,7 @@ class SWIStore(Store):
 			func = rdf_assert(*statement)
 		if self.attached:
 			func = rdf_transaction(func, log(message(self.index)))
-		call(func)
+		call(func, module="rdf_db")
 		self.index += 1
 	def remove(self, statement, context=None):
 		statement = map(self._fromNode, statement)
@@ -72,7 +112,7 @@ class SWIStore(Store):
 			func = rdf_retractall(*statement)
 		if self.attached:
 			func = rdf_transaction(func, log(message(self.index)))
-		call(func)
+		call(func, module="rdf_db")
 		self.index += 1
 
 	def triples(self, statement, context=None):
@@ -84,7 +124,7 @@ class SWIStore(Store):
 		else:
 			args = list(statement) + [colon(G,L)]
 		query = rdf4(*args)
-		for i in Query(query):
+		for i in Query(query, module="rdf_db"):
 			row = [self._toNode(X.value)
 				if isinstance(X, Variable)
 				else self._toNode(X)
@@ -99,7 +139,7 @@ class SWIStore(Store):
 		options = []
 		if identifier:
 			options.append(db(identifier))
-		call(rdf_load(file, options))
+		call(rdf_load(file, options), module="rdf_db")
 
 	def _getIdentifier(self, context):
 		if isinstance(context, Graph):

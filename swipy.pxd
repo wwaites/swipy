@@ -56,6 +56,7 @@ cdef extern from "SWI-Prolog.h":
 	int		PL_put_list(term_t t)
 	int		PL_put_term(term_t t1, term_t t2)
 	int		PL_put_integer(term_t t, long i)
+	int		PL_put_functor(term_t t, functor_t f)
 
 	ctypedef struct funcdesc_t:
 		atom_t	name

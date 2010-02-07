@@ -5,6 +5,18 @@ import sys, os
 
 version = '0.1'
 
+def swipl_config():
+	vars = os.popen("swipl -dump-runtime-variables").read()
+	lines = [line.split("=", 1) for line in vars.split("\n") if line]
+	config = dict([(x, eval(y.rstrip(";"))) for x,y in lines])
+	include_dir = os.path.join(config["PLBASE"], "include")
+	library_dir = os.path.join(config["PLBASE"], "lib")
+	library_dir = os.path.join(library_dir, config["PLARCH"])
+	return {
+		"include_dirs" : [include_dir],
+		"library_dirs" : [library_dir]
+	}
+
 swipy = Extension(
         name="swipy",
         sources=[
@@ -12,9 +24,8 @@ swipy = Extension(
         ],
         extra_compile_args=[],
         define_macros=[],
-        include_dirs=["/opt/local/lib/swipl-5.8.0/include"],
-        library_dirs=["/opt/local/lib/swipl-5.8.0/lib/i386-darwin9.8.0"],
         libraries=["pl"],
+	**swipl_config()
 )
 
 setup(name='swipy',
@@ -32,4 +43,9 @@ SWI Prolog Python Bindings
       packages=["swipy.store"],
       cmdclass={'build_ext': build_ext},
       ext_modules=[swipy],
+      package_data={
+		"swipy.store": [
+			"henry/*.pl", "henry/AUTHORS", "henry/README", "henry/COPYING",
+			"SeRQL/*.pl"],
+      }
 )

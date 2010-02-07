@@ -107,6 +107,8 @@ cdef class Term:
 			swi.PL_put_term(self._term, (<Term>value)._term)
 		elif isinstance(value, Atom):
 			swi.PL_put_atom(self._term, (<Atom>value)._atom)
+		elif isinstance(value, Functor):
+			swi.PL_put_functor(self._term, (<Functor>value)._functor)
 		elif isinstance(value, basestring):
 			swi.PL_put_string_chars(self._term, value)
 		elif isinstance(value, int):
@@ -217,7 +219,6 @@ cdef class Variable:
 	def __repr__(self):
 		return str(self)
 
-_comma = Functor(Atom(","), 2)
 cdef class Query:
 	cdef qid_t _qid
 	def __cinit__(self, *terms, module=None):
@@ -230,7 +231,7 @@ cdef class Query:
 
 		t = terms[0]
 		for tx in terms[1:]:
-			t = _comma(t, tx)
+			t = comma(t, tx)
 		f = t.functor
 
 		cdef int flags = PL_Q_NODEBUG|PL_Q_CATCH_EXCEPTION
@@ -264,14 +265,34 @@ def call(*terms, module=None):
 	t = terms[0]
 	assert isinstance(t, Term)
 	for tx in terms[1:]:
-		t = _comma(t, tx)
+		t = comma(t, tx)
 	return PL_call((<Term>t)._term, mod)
 
 ### common functors
+comma = Functor(",", 2)
+colon = Functor(":", 2)
+clause = Functor(":-", 2)
+
+### global atoms
+true = Atom("true")
+false = Atom("false")
+fail = Atom("fail")
+
 asserta = Functor("asserta")
 assertz = Functor("assertz")
+dynamic = Functor("dynamic")
+multifile = Functor("multifile")
 library = Functor("library")
 use_module = Functor("use_module")
+
+_load_files = Functor("load_files", 2)
+_silent = Functor("silent", 1)
+_if = Functor("if", 1)
+_not_loaded = Atom("not_loaded")
+
+### utility function
+def load_files(files):
+	call(_load_files(files, [_silent(true), _if(_not_loaded)]))
 
 ### housekeeping
 cdef _initialise():
