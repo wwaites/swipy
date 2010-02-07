@@ -43,11 +43,19 @@ cdef class Atom:
 		swi.PL_register_atom(atom)
 		self._atom = atom
 		return self
-	def __str__(self):
+	def name(self):
+		cdef char *name
 		if self._atom:
-			return swi.PL_atom_chars(self._atom)
+			name = <char *>swi.PL_atom_chars(self._atom)
+			try:
+				return name.decode("utf-8")
+			except UnicodeDecodeError:
+				return name.decode("latin1")
 		else:
 			return "(null)"
+	name = property(name)
+	def __str__(self):
+		return str(self.name)
 	def __repr__(self):
 		return "Atom('%s')" % self
 
@@ -164,12 +172,14 @@ cdef class Term:
 	args = property(args)
 
 	def __str__(self):
-		try:
+		cdef int t
+		t = swi.PL_term_type(self._term)
+		if t == PL_TERM and not PL_is_list(self._term):
 			ret = "%s(" % self.functor.name
 			ret += ", ".join(map(str, self.args))
 			ret += ")"
 			return ret
-		except AssertionError:
+		else:
 			return str(self.value)
 	def __repr__(self):
 		return "Term(%d)" % <unsigned long>self._term
