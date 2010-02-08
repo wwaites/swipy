@@ -12,9 +12,11 @@ def swipl_config():
 	include_dir = os.path.join(config["PLBASE"], "include")
 	library_dir = os.path.join(config["PLBASE"], "lib")
 	library_dir = os.path.join(library_dir, config["PLARCH"])
+	libs = config["PLLIBS"].replace("-l", "").split()
 	return {
 		"include_dirs" : [include_dir],
-		"library_dirs" : [library_dir]
+		"library_dirs" : [library_dir],
+		"libraries" : ["pl"] + libs
 	}
 
 swi = Extension(
@@ -24,7 +26,6 @@ swi = Extension(
         ],
         extra_compile_args=[],
         define_macros=[],
-        libraries=["pl"],
 	**swipl_config()
 )
 
