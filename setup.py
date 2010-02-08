@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import sys, os
 
-version = '0.1'
+version = '0.2'
 
 def swipl_config():
 	vars = os.popen("swipl -dump-runtime-variables").read()
