@@ -4,6 +4,8 @@ from rdflib.term import Node
 from swipy import SWIStore
 from os import path, stat
 
+owl_test = path.join(path.dirname(__file__), "owl.rdf")
+skos_test = path.join(path.dirname(__file__), "skos.rdf")
 cofog_test = path.join(path.dirname(__file__), "cofog-1999.rdf")
 
 class TestClass:
@@ -20,6 +22,7 @@ class TestClass:
 			for n in statement:
 				assert isinstance(n, Node)
 		assert i == 572
+		graph.store.unload(graph)
 	def test_03_load(self):
 		graph = Graph("SWIStore")
 		graph.store.load(cofog_test, graph)
@@ -27,19 +30,23 @@ class TestClass:
 			for n in statement:
 				assert isinstance(n, Node)
 		assert i == 572
-		graph.store.unload(graph)
-		i = 0
-		for i, statement in enumerate(graph.triples((None, RDFS.label, None))):
-			for n in statement:
-				assert isinstance(n, Node)
-		assert i == 0
 
 	def test_04_triples(self):
+		def _count():
+			i = 0
+			for i, (statement, ctx) in enumerate(store.triples((None, None, None))):
+				for n in statement:
+					assert isinstance(n, Node)
+			return i
 		store = SWIStore()
-		for i, (statement, ctx) in enumerate(store.triples((None, RDFS.label, None))):
-			for n in statement:
-				assert isinstance(n, Node)
-		assert i == 572
+		assert _count() == 2854
+		store.entailment = "none"
+		assert _count() == 2854
+		store.entailment = "rdf"
+		assert _count() == 6096
+		store.entailment = "rdfs"
+		assert _count() == 2854
+
 	def test_05_persist(self):
 		graph = Graph("SWIStore", identifier="test")
 		assert not graph.store.attached
@@ -48,12 +55,14 @@ class TestClass:
 		graph.parse(cofog_test)
 		stat("test.db")
 		graph.close()
+
 	def test_06_retract(self):
 		graph = Graph("SWIStore", identifier="test")
 		graph.open("test.db")
 		ntriples = len(list(graph.triples((None, RDFS.label, None))))
 		assert ntriples > 0
 		graph.remove((None, RDFS.label, None))
-		assert len(list(graph.triples((None, RDFS.label, None)))) == 0
+		ntriples = len(list(graph.triples((None, RDFS.label, None))))
+		assert ntriples == 0
+		graph.store.unload(graph)
 		graph.close()
-

@@ -58,6 +58,10 @@ cdef class Atom:
 		return str(self.name)
 	def __repr__(self):
 		return "Atom('%s')" % self
+	def __richcmp__(self, other, op):
+		if op == 2:
+			return isinstance(other, Atom) and self.name == other.name
+		raise ValueError("Cannot compare, %s <%s> %s" % (self, op, other))
 
 cdef class Functor:
 	cdef functor_t _functor
@@ -224,8 +228,13 @@ cdef class Query:
 	def __cinit__(self, *terms, module=None):
 		#, int flags=PL_Q_NODEBUG|PL_Q_CATCH_EXCEPTION, module_t module=NULL):
 		cdef module_t mod
+		cdef atom_t modname
 		if module:
-			mod = PL_new_module((<Atom>Atom(module))._atom)
+			if isinstance(module, Atom):
+				modname = (<Atom>module)._atom
+			else:
+				modname = (<Atom>Atom(module))._atom
+			mod = PL_new_module(modname)
 		else:
 			mod = NULL
 
@@ -258,8 +267,13 @@ cdef class Query:
 
 def call(*terms, module=None):
 	cdef module_t mod
+	cdef atom_t modname
 	if module:
-		mod = PL_new_module((<Atom>Atom(module))._atom)
+		if isinstance(module, Atom):
+			modname = (<Atom>module)._atom
+		else:
+			modname = (<Atom>Atom(module))._atom
+		mod = PL_new_module(modname)
 	else:
 		mod = NULL
 	t = terms[0]

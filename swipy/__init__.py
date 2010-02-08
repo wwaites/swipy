@@ -81,6 +81,7 @@ message = Functor("message")
 
 sparql_query = Functor("sparql_query", 3)
 entailment = Functor("entailment")
+entailment2 = Functor("entailment", 2)
 
 ####
 #### SWI-Prolog backed RDFLib Store
@@ -89,6 +90,7 @@ class SWIStore(Store):
 	context_aware = True
 	def __init__(self):
 		self.index = 0
+		self.entailment = None
 	def open(self, directory, create=False):
 		call(rdf_attach_db(Atom(directory), []), module="rdf_persistency")
 	def close(self, commit_pending_transaction=False):
@@ -132,18 +134,28 @@ class SWIStore(Store):
 		statement = map(self._fromNode, statement)
 		identifier = self._getIdentifier(context)
 		G, L = Variable(), Variable()
-		if identifier:
-			args = list(statement) + [colon(identifier,L)]
+
+		if self.entailment:
+			E = Variable()
+			query = entailment2(Atom(self.entailment), E)
+			try:
+				module = [E.value for x in Query(query, module="serql")][0]
+			except IndexError:
+				raise PrologError("Unknown Entailment: %s" % entailmod)
+			query = rdf(*statement)
 		else:
-			args = list(statement) + [colon(G,L)]
-		query = rdf4(*args)
-		for i in Query(query, module="rdf_db"):
+			if identifier:
+				args = list(statement) + [colon(identifier,L)]
+			else:
+				args = list(statement) + [colon(G,L)]
+			query = rdf4(*args)
+			module = "rdf_db"
+
+		for i in Query(query, module=module):
 			row = [self._toNode(X.value)
 				if isinstance(X, Variable)
 				else self._toNode(X)
 				for X in statement]
-			if not identifier:
-				context = (str(G.value), L.value)
 			yield row, context
 
 	def load(self, filename, context=None):
@@ -163,7 +175,14 @@ class SWIStore(Store):
 		q = Atom(q)
 		R = Variable()
 		for i in Query(sparql_query(q, R, [entailment(entailmod)]), module="sparql"):
-			print R.value
+			result = R.value
+			if isinstance(result, Atom) and result in (true, false):
+				yield result
+			elif isinstance(result, Term):
+				yield [self._toNode(x.value) for x in result.args]
+			else:
+				raise ValueError("bad result, %s %s" % (result, type(result)))
+			
 
 	def _getIdentifier(self, context):
 		if isinstance(context, Graph):
@@ -198,7 +217,7 @@ class SWIStore(Store):
 					name = term.functor.name
 					args = term.args
 					if name == "lang":
-						lang = args[0].value
+						lang = str(args[0].value)
 						value = args[1].value.name
 						return Literal(value, lang=lang)
 					if name == "type":
@@ -209,6 +228,8 @@ class SWIStore(Store):
 				## args[1] is normally line number
 				args = term.args
 				return URIRef(str(args[0].value)), args[1].value
+		elif isinstance(term, Variable):
+			return self._toNode(term.value)
 		raise ValueError("Wrong Term: %s" % (repr(term),))
 
 register("SWIStore", Store, "swipy", "SWIStore")
