@@ -40,12 +40,6 @@ class TestClass:
 			return i
 		store = SWIStore()
 		assert _count() == 2854
-		store.entailment = "none"
-		assert _count() == 2854
-		store.entailment = "rdf"
-		assert _count() == 6096
-		store.entailment = "rdfs"
-		assert _count() == 2854
 
 	def test_05_persist(self):
 		graph = Graph("SWIStore", identifier="test")
