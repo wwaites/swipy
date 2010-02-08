@@ -17,7 +17,7 @@ def swipl_config():
 		"library_dirs" : [library_dir]
 	}
 
-swipy = Extension(
+swi = Extension(
         name="swi",
         sources=[
                 "swi.pyx",
@@ -40,11 +40,11 @@ SWI Prolog Python Bindings
       author_email='wwaites_at_gmail.com',
       url='http://github.com/wwaites/swipy',
       license='GPL',
-      packages=["swipy"],
+      packages=["swirdf"],
       cmdclass={'build_ext': build_ext},
-      ext_modules=[swipy],
+      ext_modules=[swi],
       package_data={
-		"swipy": [
+		"swirdf": [
 			"henry/*.pl", "henry/AUTHORS", "henry/README", "henry/COPYING",
 			"SeRQL/*.pl"],
       }

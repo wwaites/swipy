@@ -4,8 +4,8 @@ include setup.cfg
 include setup.py
 include swi.pyx
 include swi.pxd
-include swipy/*.py
-recursive-include swipy/henry *
-recursive-include swipy/SeRQL *
+include swirdf/*.py
+recursive-include swirdf/henry *
+recursive-include swirdf/SeRQL *
 include tests/*.py
 include tests/*.rdf

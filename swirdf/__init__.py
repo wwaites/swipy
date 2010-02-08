@@ -232,4 +232,4 @@ class SWIStore(Store):
 			return self._toNode(term.value)
 		raise ValueError("Wrong Term: %s" % (repr(term),))
 
-register("SWIStore", Store, "swipy", "SWIStore")
+register("SWIStore", Store, "swirdf", "SWIStore")

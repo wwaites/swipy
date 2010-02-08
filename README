@@ -24,9 +24,10 @@ Make sure "swipl" is in your path, then,
 
 === Using ===
 
-	from swipy.store import SWIStore
+	from swirdf import SWIStore
 	from rdflib.graph import Graph
 
 	g = Graph(SWIStore())
+	g.entailment = "n3"
 
 	etc ...
