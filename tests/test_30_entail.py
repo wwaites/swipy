@@ -17,10 +17,15 @@ class TestClass:
 		store.load(owl_test)
 		store.load(skos_test)
 		store.load(cofog_test)
-		assert _count() == 2854
+		graph = Graph(store)
+		assert _count() == 3560
+		open("test.n3", "w+").write(graph.serialize(format="n3"))
 		store.entailment = "none"
-		assert _count() == 2854
+		assert _count() == 3558
+		open("test-none.n3", "w+").write(graph.serialize(format="n3"))
 		store.entailment = "rdf"
-		assert _count() == 6096
+		assert _count() == 5871
+		open("test-rdf.n3", "w+").write(graph.serialize(format="n3"))
 		store.entailment = "rdfs"
-		assert _count() == 2854
+		assert _count() == 6562
+		open("test-rdfs.n3", "w+").write(graph.serialize(format="n3"))
