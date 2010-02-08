@@ -1,4 +1,4 @@
-cimport swipy as swi
+cimport swi
 
 class PrologError(Exception):
 	"""Exception in Prolog"""
@@ -268,6 +268,18 @@ def call(*terms, module=None):
 		t = comma(t, tx)
 	return PL_call((<Term>t)._term, mod)
 
+### housekeeping
+cdef _initialise():
+	cdef char **argv = ["./", "-q", "-nosignals"]
+	swi.PL_initialise(3, argv)
+def _finalise():
+	swi.PL_halt(0)
+_initialise()
+import atexit
+atexit.register(_finalise)
+del _finalise
+del atexit
+
 ### common functors
 comma = Functor(",", 2)
 colon = Functor(":", 2)
@@ -286,27 +298,4 @@ multifile = Functor("multifile")
 consult = Functor("consult")
 library = Functor("library")
 use_module = Functor("use_module")
-
-_load_files = Functor("load_files", 2)
-_silent = Functor("silent", 1)
-_if = Functor("if", 1)
-_not_loaded = Atom("not_loaded")
-
-### utility function
-def load_files(files):
-	call(_load_files(files, [_silent(true), _if(_not_loaded)]))
-
-### housekeeping
-cdef _initialise():
-	cdef char **argv = ["./", "-q", "-nosignals"]
-	swi.PL_initialise(3, argv)
-def _finalise():
-	swi.PL_halt(0)
-_initialise()
-import atexit
-atexit.register(_finalise)
-del _finalise
-del atexit
-
-### declare a namespace so we can have submodules
-__import__("pkg_resources").declare_namespace("swipy")
+load_files = Functor("load_files", 1)

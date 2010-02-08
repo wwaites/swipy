@@ -1,7 +1,7 @@
 from rdflib.graph import Graph
 from rdflib.namespace import Namespace, RDFS
 from rdflib.term import Node
-from swipy.store import SWIStore
+from swipy import SWIStore
 from os import path, stat
 
 cofog_test = path.join(path.dirname(__file__), "cofog-1999.rdf")

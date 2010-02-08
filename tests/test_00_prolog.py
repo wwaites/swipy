@@ -1,4 +1,4 @@
-from swipy import *
+from swi import *
 
 class TestClass(object):
 	def test_00_atom(self):

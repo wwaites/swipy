@@ -1,4 +1,4 @@
-:- module(entailment,[rdf/3]).
+:- module(n3_entailment,[rdf/3]).
 
 :- use_module(rdf_e).
 :- use_module(utils).

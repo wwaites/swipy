@@ -2,11 +2,10 @@ include COPYING
 include README
 include setup.cfg
 include setup.py
-include swipy.pyx
-include swipy.pxd
+include swi.pyx
+include swi.pxd
 include swipy/*.py
-include swipy/store/*.py
-recursive-include swipy/store/henry *
-recursive-include swipy/store/SeRQL *
+recursive-include swipy/henry *
+recursive-include swipy/SeRQL *
 include tests/*.py
 include tests/*.rdf
