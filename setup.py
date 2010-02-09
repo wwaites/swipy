@@ -1,22 +1,34 @@
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
-import sys, os
+import sys, os, re
 
-version = '0.2'
+version = '0.3-git'
 
 def swipl_config():
-	vars = os.popen("swipl -dump-runtime-variables").read()
-	lines = [line.split("=", 1) for line in vars.split("\n") if line]
-	config = dict([(x, eval(y.rstrip(";"))) for x,y in lines])
+	def get_config(prog):
+		vars = os.popen("%s -dump-runtime-variables 2>&1" % prog).read()
+		lines = [line.split("=", 1) for line in vars.split("\n") if line]
+		return dict([(x, eval(y.rstrip(";"))) for x,y in lines])
+	try:
+		config = get_config("swipl")
+	except:
+		try:
+			config = get_config("pl")
+		except:
+			raise RuntimeError("Could not find SWI-Prolog - is it on the PATH?")
+	print config
 	include_dir = os.path.join(config["PLBASE"], "include")
 	library_dir = os.path.join(config["PLBASE"], "lib")
 	library_dir = os.path.join(library_dir, config["PLARCH"])
 	libs = config["PLLIBS"].replace("-l", "").split()
+	m = re.match(".*-Wl,-(R|rpath).(?P<dir>[^ ]+).*", config["PLLDFLAGS"]) or []
+	runtime_library_dirs = m.groupdict().values() if m else []
 	return {
 		"include_dirs" : [include_dir],
 		"library_dirs" : [library_dir],
-		"libraries" : ["pl"] + libs
+		"runtime_library_dirs" : runtime_library_dirs,
+		"libraries" : libs
 	}
 
 swi = Extension(
