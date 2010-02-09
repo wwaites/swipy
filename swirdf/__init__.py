@@ -42,8 +42,11 @@ deps = (
 	(henry, "n3_load"),
 	(henry, "n3_to_prolog"),
 	(henry, "n3_dcg"),
-	(henry, "n3_entailment")
+	(henry, "n3_entailment"),
+	(henry, "rdf_e"),
 )
+prolog_flags.verbose = 'normal'
+
 for loc, name in deps:
 	mod = name.split("/")[-1]
 	call(load_files([loc(Atom(name))]), module=mod)

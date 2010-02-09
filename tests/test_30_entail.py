@@ -1,10 +1,12 @@
 from rdflib.graph import Graph
+from rdflib.term import URIRef
 from swirdf import SWIStore
 from os import path, stat
 
 owl_test = path.join(path.dirname(__file__), "owl.rdf")
 skos_test = path.join(path.dirname(__file__), "skos.rdf")
 cofog_test = path.join(path.dirname(__file__), "cofog-1999.rdf")
+entail_test = path.join(path.dirname(__file__), "entail.n3")
 
 class TestClass:
 	def test_00_triples(self):
@@ -17,7 +19,7 @@ class TestClass:
 		store.load(owl_test)
 		store.load(skos_test)
 		store.load(cofog_test)
-		graph = Graph(store)
+		graph = Graph(store, "entailment")
 		assert _count() == 3560
 		open("test.n3", "w+").write(graph.serialize(format="n3"))
 		store.entailment = "none"
@@ -29,3 +31,11 @@ class TestClass:
 		store.entailment = "rdfs"
 		assert _count() == 6562
 		open("test-rdfs.n3", "w+").write(graph.serialize(format="n3"))
+
+	def test_10_n3(self):
+		store = SWIStore()
+		store.load(entail_test, format="n3")
+		graph = Graph(store, "entailment")
+		store.entailment = "n3"
+		for k in graph.triples((None, None, URIRef("http://example.org/bar"))):
+			print k

@@ -12,8 +12,6 @@ class TestClass:
 	def test_01_select(self):
 		graph = Graph("SWIStore", identifier="qtest")
 		for i,row in enumerate(graph.store.query("SELECT * FROM <qtest> WHERE { ?s ?p ?o }")):
-			print row 
-			break
-		print i
+			pass
 		assert i == 6096
 

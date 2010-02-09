@@ -225,11 +225,14 @@ cdef class Variable:
 		return str(self)
 
 cdef class Query:
+	cdef fid_t _cid
 	cdef qid_t _qid
+	cdef tuple _terms
 	def __cinit__(self, *terms, module=None):
 		#, int flags=PL_Q_NODEBUG|PL_Q_CATCH_EXCEPTION, module_t module=NULL):
 		cdef module_t mod
 		cdef atom_t modname
+		self._cid = PL_open_foreign_frame()
 		if module:
 			if isinstance(module, Atom):
 				modname = (<Atom>module)._atom
@@ -238,6 +241,8 @@ cdef class Query:
 			mod = PL_new_module(modname)
 		else:
 			mod = NULL
+
+		self._terms = terms
 
 		t = terms[0]
 		for tx in terms[1:]:
@@ -255,13 +260,15 @@ cdef class Query:
 	def __dealloc__(self):
 		if self._qid:
 			swi.PL_close_query(self._qid)
+		PL_discard_foreign_frame(self._cid)
 	def __iter__(self):
 		return self
 	def __next__(self):
 		if PL_next_solution(self._qid):
 			return
-		if PL_exception(self._qid):
-			raise PrologError("Bad Query")
+		cdef term_t exc = PL_exception(self._qid)
+		if exc:
+			raise PrologError("Bad Query: %s" % Term().ref(exc))
 		raise StopIteration
 	def cut(self):
 		PL_cut_query(self._qid)
@@ -332,3 +339,31 @@ load_files = Functor("load_files", 1)
 swi = Functor("swi")
 library = Functor("library")
 foreign = Functor("foreign")
+
+cdef class _PrologFlags:
+	_get_prolog_flag = Functor("current_prolog_flag", 2)
+	_set_prolog_flag = Functor("set_prolog_flag", 2)
+	def __getattr__(self, attr):
+		frame = Frame()
+		if isinstance(attr, basestring):
+			attr = Atom(attr)
+		X = Variable()
+		result = [X.value for x in Query(self._get_prolog_flag(attr, X))]
+		if result:
+			result = result[0]
+			if isinstance(result, Atom):
+				result = str(result)
+		frame.discard()
+		if not result:
+			raise AttributeError("result")
+		return result
+	def __setattr__(self, attr, val):
+		frame = Frame()
+		if isinstance(attr, basestring):
+			attr = Atom(attr)
+		if isinstance(val, basestring):
+			val = Atom(val)
+		call(self._set_prolog_flag(attr, val))
+		frame.discard()
+
+prolog_flags = _PrologFlags()
