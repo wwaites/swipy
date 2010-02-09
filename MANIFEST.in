@@ -4,6 +4,7 @@ include setup.cfg
 include setup.py
 include swi.pyx
 include swi.pxd
+include swi_config.pyx
 include swirdf/*.py
 recursive-include swirdf/henry *
 recursive-include swirdf/SeRQL *
