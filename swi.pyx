@@ -304,6 +304,7 @@ true = Atom("true")
 false = Atom("false")
 fail = Atom("fail")
 
+passert = Functor("assert")
 asserta = Functor("asserta")
 assertz = Functor("assertz")
 dynamic = Functor("dynamic")
