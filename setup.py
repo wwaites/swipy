@@ -47,6 +47,6 @@ SWI Prolog Python Bindings
       package_data={
 		"swirdf": [
 			"henry/*.pl", "henry/AUTHORS", "henry/README", "henry/COPYING",
-			"SeRQL/*.pl"],
+			"SeRQL/*.pl", "SeRQL/*/*.pl", "SeRQL/*/*/*.pl"],
       }
 )

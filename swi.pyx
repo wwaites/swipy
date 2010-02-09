@@ -310,6 +310,9 @@ dynamic = Functor("dynamic")
 multifile = Functor("multifile")
 
 consult = Functor("consult")
-library = Functor("library")
 use_module = Functor("use_module")
 load_files = Functor("load_files", 1)
+
+swi = Functor("swi")
+library = Functor("library")
+foreign = Functor("foreign")

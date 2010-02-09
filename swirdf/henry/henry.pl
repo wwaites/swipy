@@ -5,11 +5,11 @@
               [ silent(true)
               ]).
 
-:- use_module(entailment).
+:- use_module(n3_entailment).
 
 :- [n3_load].
 :- [n3_to_prolog].
-:- [entailment].
+:- [n3_entailment].
 
 server :-
         serql_server([]).

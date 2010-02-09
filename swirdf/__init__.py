@@ -34,6 +34,7 @@ henry = Functor("henry")
 ## Read in Prolog Dependencies
 ##
 call(load_files([
+	swi(Atom("swipl.rc")),
 	library(Atom("semweb/rdf_db")),
 	library(Atom("semweb/rdf_persistency")),
 	library(Atom("semweb/rdf_portray")),
@@ -44,7 +45,9 @@ call(load_files([
 #	serql(Atom("rdfslite_entailment")),
 	serql(Atom("load")),
 	henry(Atom("n3_load")),
-#	henry(Atom("n3_entailment"))
+	henry(Atom("n3_to_prolog")),
+	henry(Atom("n3_dcg.pl")),
+#	henry(Atom("n3_entailment")),
 ]))
 
 ##
@@ -66,6 +69,11 @@ rdf_transaction = Functor("rdf_transaction", 2)
 rdf_attach_db = Functor("rdf_attach_db", 2)
 rdf_detach_db = Functor("rdf_detach_db", 0)
 rdf_current_db = Functor("rdf_current_db")
+
+##
+## Functors from Henry
+##
+n3_load = Functor("n3_load")
 
 ##
 ## Terms used throughout
@@ -158,13 +166,16 @@ class SWIStore(Store):
 				for X in statement]
 			yield row, context
 
-	def load(self, filename, context=None):
+	def load(self, filename, context=None, format="xml"):
 		file = Atom(filename)
-		identifier = self._getIdentifier(context)
-		options = []
-		if identifier:
-			options.append(db(identifier))
-		call(rdf_load(file, options), module="rdf_db")
+		if format == "xml":
+			identifier = self._getIdentifier(context)
+			options = []
+			if identifier:
+				options.append(db(identifier))
+			call(rdf_load(file, options), module="rdf_db")
+		elif format == "n3":
+			call(n3_load(file), module="n3_load")
 	def unload(self, context=None):
 		identifier = self._getIdentifier(context)
 		if identifier:
