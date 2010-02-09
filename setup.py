@@ -12,9 +12,11 @@ def swipl_config():
 		return dict([(x, eval(y.rstrip(";"))) for x,y in lines])
 	try:
 		config = get_config("swipl")
+		swipl = "swipl"
 	except:
 		try:
 			config = get_config("pl")
+			swipl = "pl"
 		except:
 			raise RuntimeError("Could not find SWI-Prolog - is it on the PATH?")
 	include_dir = os.path.join(config["PLBASE"], "include")
@@ -23,20 +25,34 @@ def swipl_config():
 	libs = config["PLLIBS"].replace("-l", "").split()
 	m = re.match(".*-Wl,-(R|rpath).(?P<dir>[^ ]+).*", config["PLLDFLAGS"]) or []
 	runtime_library_dirs = m.groupdict().values() if m else []
+
+	global version
+	rev = os.popen("git describe --tags 2> /dev/null").read().strip()
+	if rev:
+		version = rev
+	else:
+		rev = os.popen("git describe --always --tags 2> /dev/null").read().strip()
+		if rev:
+			version = "git-%s" % (rev,)
+	if rev:
+		cfg = open("swi_config.pyx", "w+")
+		cfg.write("""\
+swi_vers = %s
+swi_name = %s
+swi_conf = %s
+""" % (repr(version), repr(swipl), repr(config)))
 	return {
 		"include_dirs" : [include_dir],
 		"library_dirs" : [library_dir],
 		"runtime_library_dirs" : runtime_library_dirs,
-		"libraries" : libs
+		"libraries" : libs,
 	}
 
 swi = Extension(
         name="swi",
         sources=[
-                "swi.pyx",
+                "swi.pyx"
         ],
-        extra_compile_args=[],
-        define_macros=[],
 	**swipl_config()
 )
 

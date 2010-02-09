@@ -34,7 +34,7 @@ henry = Functor("henry")
 ## Read in Prolog Dependencies
 ##
 call(load_files([
-	swi(Atom("swipl.rc")),
+	swi(Atom(swi_name + ".rc")),
 	library(Atom("semweb/rdf_db")),
 	library(Atom("semweb/rdf_persistency")),
 	library(Atom("semweb/rdf_portray")),

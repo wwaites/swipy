@@ -1,4 +1,5 @@
 cimport swi
+include "swi_config.pyx"
 
 class PrologError(Exception):
 	"""Exception in Prolog"""
