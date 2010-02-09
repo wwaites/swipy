@@ -35,6 +35,7 @@ henry = Functor("henry")
 ##
 call(load_files([
 	swi(Atom("swipl.rc")),
+	library(Atom("unix")),
 	library(Atom("semweb/rdf_db")),
 	library(Atom("semweb/rdf_persistency")),
 	library(Atom("semweb/rdf_portray")),
@@ -241,6 +242,7 @@ class SWIStore(Store):
 				return URIRef(str(args[0].value)), args[1].value
 		elif isinstance(term, Variable):
 			return self._toNode(term.value)
-		raise ValueError("Wrong Term: %s" % (repr(term),))
+		return Literal(term) ## try our best
+		#raise ValueError("Wrong Term: %s" % (repr(term),))
 
 register("SWIStore", Store, "swirdf", "SWIStore")
