@@ -31,24 +31,22 @@ serql = Functor("serql")
 henry = Functor("henry")
 
 ##
-## Read in Prolog Dependencies
+## Read in Prolog Dependencies (mind namespaces, each in own module)
 ##
-call(load_files([
-	swi(Atom(swi_name + ".rc")),
-	library(Atom("semweb/rdf_db")),
-	library(Atom("semweb/rdf_persistency")),
-	library(Atom("semweb/rdf_portray")),
-#	serql(Atom("sparql")),
-#	serql(Atom("no_entailment")),
-#	serql(Atom("rdf_entailment")),
-#	serql(Atom("rdfs_entailment")),
-#	serql(Atom("rdfslite_entailment")),
-	serql(Atom("load")),
-	henry(Atom("n3_load")),
-	henry(Atom("n3_to_prolog")),
-	henry(Atom("n3_dcg.pl")),
-	henry(Atom("n3_entailment")),
-]))
+deps = (
+	(swi, swi_name + ".rc"),
+	(library, "semweb/rdf_db"),
+	(library, "semweb/rdf_persistency"),
+	(library, "semweb/rdf_portray"),
+	(serql, "load"),
+	(henry, "n3_load"),
+	(henry, "n3_to_prolog"),
+	(henry, "n3_dcg"),
+	(henry, "n3_entailment")
+)
+for loc, name in deps:
+	mod = name.split("/")[-1]
+	call(load_files([loc(Atom(name))]), module=mod)
 
 ##
 ## Functions from rdf_db
