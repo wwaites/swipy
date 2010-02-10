@@ -1,6 +1,6 @@
 from rdflib.graph import Graph
 from rdflib.term import URIRef
-from swirdf import SWIStore
+from swipy.swirdf import SWIStore
 from os import path, stat
 
 owl_test = path.join(path.dirname(__file__), "owl.rdf")

@@ -68,12 +68,12 @@ SWI Prolog Python Bindings
       author_email='wwaites_at_gmail.com',
       url='http://github.com/wwaites/swipy',
       license='GPL',
-      packages=["swirdf"],
+      packages=["swipy"],
       cmdclass={'build_ext': build_ext},
       ext_modules=[swi],
       package_data={
-		"swirdf": [
-			"henry/*.pl", "henry/AUTHORS", "henry/README", "henry/COPYING",
-			"SeRQL/*.pl", "SeRQL/*/*.pl", "SeRQL/*/*/*.pl"],
+		"swipy": [
+			"prolog/henry/*.pl", "prolog/henry/AUTHORS", "prolog/henry/README", "prolog/henry/COPYING",
+			"prolog/SeRQL/*.pl", "prolog/SeRQL/*/*.pl", "prolog/SeRQL/*/*/*.pl"],
       }
 )

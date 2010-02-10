@@ -24,9 +24,9 @@ def set_path(name, relpath):
 	path = os.path.join(basedir, relpath)
 	call(assertz(file_search_path(Atom(name), Atom(path))), module="user")
 
-set_path("serql", "SeRQL")
-set_path("library", "SeRQL/lib")
-set_path("henry", "henry")
+set_path("serql", "prolog/SeRQL")
+set_path("library", "prolog/SeRQL/lib")
+set_path("henry", "prolog/henry")
 serql = Functor("serql")
 henry = Functor("henry")
 
@@ -268,4 +268,4 @@ class SWIStore(Store):
 		return Literal(term) ## try our best
 		#raise ValueError("Wrong Term: %s" % (repr(term),))
 
-register("SWIStore", Store, "swirdf", "SWIStore")
+register("SWIStore", Store, "swipy.swirdf", "SWIStore")
