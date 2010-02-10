@@ -35,7 +35,6 @@ henry = Functor("henry")
 ##
 call(load_files([
 	swi(Atom("swipl.rc")),
-	library(Atom("unix")),
 	library(Atom("semweb/rdf_db")),
 	library(Atom("semweb/rdf_persistency")),
 	library(Atom("semweb/rdf_portray")),
@@ -48,7 +47,7 @@ call(load_files([
 	henry(Atom("n3_load")),
 	henry(Atom("n3_to_prolog")),
 	henry(Atom("n3_dcg.pl")),
-#	henry(Atom("n3_entailment")),
+	henry(Atom("n3_entailment")),
 ]))
 
 ##
