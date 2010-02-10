@@ -268,6 +268,9 @@ cdef class Query:
 def call(*terms, module=None):
 	cdef module_t mod
 	cdef atom_t modname
+	cdef fid_t cid
+
+	cid = PL_open_foreign_frame()
 	if module:
 		if isinstance(module, Atom):
 			modname = (<Atom>module)._atom
@@ -280,7 +283,18 @@ def call(*terms, module=None):
 	assert isinstance(t, Term)
 	for tx in terms[1:]:
 		t = comma(t, tx)
-	return PL_call((<Term>t)._term, mod)
+	f = t.functor
+
+	cdef predicate_t p = swi.PL_pred((<Functor>f)._functor, mod)
+	cdef int arity = (<Functor>f).arity
+	cdef term_t term = (<Term>t)._term
+	cdef term_t a0 = swi.PL_new_term_refs(arity)
+	for i, a in enumerate(range(1, arity+1)):
+		swi.PL_get_arg(a, term, a0+<int>i)
+
+	result = PL_call_predicate(mod, 0, p, a0)
+	PL_discard_foreign_frame(cid)
+	return result
 
 ### housekeeping
 cdef _initialise():

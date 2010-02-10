@@ -102,6 +102,7 @@ cdef extern from "SWI-Prolog.h":
 	term_t		PL_exception(qid_t qid)
 
 	int		PL_call(term_t t, module_t m)
+	int		PL_call_predicate(module_t m, int debug, predicate_t pred, term_t t0)
 
 	int		PL_put_nil(term_t l)
 	int		PL_cons_list(term_t h, term_t v, term_t t)
