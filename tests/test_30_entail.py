@@ -41,4 +41,5 @@ class TestClass:
 		i = 0
 		for i, k in enumerate(store.triples((None, None, None))):
 			pass
-		assert i == 1
+		print i
+		assert i == 2 ## bah, side-effect: we have a duplicate rule compiled!

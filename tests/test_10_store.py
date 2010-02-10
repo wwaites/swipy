@@ -1,4 +1,4 @@
-from rdflib.graph import Graph
+from rdflib.graph import Graph, ConjunctiveGraph
 from rdflib.namespace import Namespace, RDFS
 from rdflib.term import Node, URIRef
 from swipy.store import SWIStore
@@ -7,6 +7,7 @@ from os import path, stat
 owl_test = path.join(path.dirname(__file__), "owl.rdf")
 skos_test = path.join(path.dirname(__file__), "skos.rdf")
 cofog_test = path.join(path.dirname(__file__), "cofog-1999.rdf")
+entail_test = path.join(path.dirname(__file__), "entail.n3")
 
 class TestClass:
 	def test_00_graph(self):
@@ -68,3 +69,13 @@ class TestClass:
 		assert pfx == "example"
 		uri = s.namespace("example")
 		assert uri == URIRef("http://example.org/")
+
+	def test_08_n3(self):
+		st = SWIStore()
+		g = Graph(st, identifier="test")
+		st.remove((None,None,None))
+		g.parse(entail_test, format="n3")
+		st.compile()
+		st.entailment = "n3"
+		assert len(list(g.triples((None, None, None)))) == 2
+		st.remove((None,None,None))

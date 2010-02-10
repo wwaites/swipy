@@ -1,7 +1,8 @@
-from rdflib.graph import Graph
+from rdflib.graph import Graph, QuotedGraph
 from rdflib.store import Store
 from rdflib.plugin import register
 from rdflib.term import URIRef, Literal, BNode
+from rdflib.term import Variable as RVariable
 from swi import *
 from swipy.utils import *
 import os
@@ -125,6 +126,7 @@ class SWIStore(Store):
 	itself enables journalling.
 	"""
 	context_aware = True
+	formula_aware = True
 	def __init__(self):
 		self.index = 0
 		self.entailment = None
@@ -170,6 +172,14 @@ class SWIStore(Store):
 			call(n3_load(file), module="n3_load")
 			call(compile_all(), module="n3_to_prolog")
 	@framed
+	def compile(self):
+		"""
+		Compile any entailments that we find in the store into Prolog statements.
+		This is done also by the load method if format is N3 so there is no
+		need to call it again.
+		"""
+		call(compile_all(), module="n3_to_prolog")
+	@framed
 	def unload(self, context=None):
 		"""
 		Unload any asserted triples in the named graph.
@@ -182,8 +192,13 @@ class SWIStore(Store):
 	def add(self, statement, context=None, quoted=False):
 		statement = map(self._fromNode, statement)
 		identifier = self._getIdentifier(context)
-		if identifier:
-			args = list(statement) + [colon(identifier, self.index)]
+		if identifier and quoted:
+			args = list(statement) + [identifier]
+			func = rdf_assert4(*args)
+		elif identifier:
+			## having identifier:index causes henry to break. drop for now
+			#args = list(statement) + [colon(identifier, self.index)]
+			args = list(statement) + [identifier]
 			func = rdf_assert4(*args)
 		else:
 			func = rdf_assert(*statement)
@@ -249,7 +264,9 @@ class SWIStore(Store):
 				raise ValueError("bad result, %s %s" % (result, type(result)))
 
 	def _getIdentifier(self, context):
-		if isinstance(context, Graph):
+		if isinstance(context, QuotedGraph):
+			identifier = "__bnode_graph_%s" % context.identifier
+		elif isinstance(context, Graph):
 			identifier = context.identifier
 		else:
 			identifier = context
@@ -260,6 +277,8 @@ class SWIStore(Store):
 			return Variable()
 		elif isinstance(node, URIRef):
 			return Atom(str(node))
+		elif isinstance(node, BNode):
+			return Atom("__bnode_%s" % node)
 		elif isinstance(node, Literal):
 			if not node.language and not node.datatype:
 				return literal(Atom(str(node)))
@@ -267,10 +286,18 @@ class SWIStore(Store):
 				return literal(lang(Atom(node.language), Atom(str(node))))
 			if not node.language and node.datatype:
 				return literal(dtype(Atom(str(node.datatype)), Atom(str(node))))
-		raise ValueError("Wrong node: %s" % (repr(node),))
+		elif isinstance(node, RVariable):
+			return Atom("__bnode_%s_uqvar" % (node,))
+		elif isinstance(node, QuotedGraph):
+			return Atom("__bnode_graph_%s" % (node.identifier,))
+		raise ValueError("Wrong node: %s %s" % (repr(node), type(node)))
 	def _toNode(self, term):
 		if isinstance(term, Atom):
-			return URIRef(term.name)
+			name = term.name
+			if name[:8] == "__bnode_":
+				return BNode(name[8:])
+			else:
+				return URIRef(name)
 		elif isinstance(term, Term): ##
 			name = term.functor.name
 			if name == "literal":
