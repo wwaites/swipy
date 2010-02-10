@@ -78,6 +78,14 @@ rdf_detach_db = Functor("rdf_detach_db", 0)
 rdf_current_db = Functor("rdf_current_db")
 
 ##
+## Functors for namespace handling
+##
+rdf_current_ns = Functor("rdf_current_ns", 2)
+rdf_register_ns = Functor("rdf_register_ns", 3)
+ns_force = Functor("force")
+ns_keep = Functor("keep")
+
+##
 ## Functors from Henry
 ##
 n3_load = Functor("n3_load")
@@ -262,31 +270,58 @@ class SWIStore(Store):
 		raise ValueError("Wrong node: %s" % (repr(node),))
 	def _toNode(self, term):
 		if isinstance(term, Atom):
-			return URIRef(str(term))
+			return URIRef(term.name)
 		elif isinstance(term, Term): ##
 			name = term.functor.name
 			if name == "literal":
 				term = term.args[0].value
 				if isinstance(term, Atom):
-					return Literal(str(term))
+					return Literal(term.name)
 				if isinstance(term, Term):
 					name = term.functor.name
 					args = term.args
 					if name == "lang":
-						lang = str(args[0].value)
+						lang = args[0].value.name
 						value = args[1].value.name
 						return Literal(value, lang=lang)
 					if name == "type":
-						dtype = URIRef(str(args[0].value))
-						value = URIRef(str(args[1].value))
+						dtype = URIRef(args[0].value.name)
+						value = URIRef(args[1].value.name)
 						return Literal(value, datatype=dtype)
 			elif name == ":":
 				## args[1] is normally line number
 				args = term.args
-				return URIRef(str(args[0].value)), args[1].value
+				return URIRef(args[0].value.name), args[1].value
 		elif isinstance(term, Variable):
 			return self._toNode(term.value)
 		return Literal(term) ## try our best
-		#raise ValueError("Wrong Term: %s" % (repr(term),))
+
+	##
+	## Support for Namespaces
+	##
+	@framed_generator
+	def namespaces(self):
+		NS, URI = Variable(), Variable()
+		for x in Query(rdf_current_ns(NS, URI), module="rdf_db"):
+			yield str(NS.value), self._toNode(URI.value)
+	@framed
+	def bind(self, ns, uri, force=False):
+		if force:
+			options = [ns_force(true)]
+		else:
+			options = [ns_keep(true)]
+		call(rdf_register_ns(Atom(str(ns)), Atom(str(uri)), options), module="rdf_db")
+	@framed
+	def namespace(self, prefix):
+		URI = Variable()
+		pfx = Atom(str(prefix))
+		result = [self._toNode(URI.value) for x in Query(rdf_current_ns(pfx, URI), module="rdf_db")]
+		return result[0] if result else None
+	@framed
+	def prefix(self, uri):
+		NS = Variable()
+		_uri = Atom(str(uri))
+		result = [NS.value.name for x in Query(rdf_current_ns(NS, _uri), module="rdf_db")]
+		return result[0] if result else None
 
 register("SWIStore", Store, "swipy.store", "SWIStore")

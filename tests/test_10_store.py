@@ -1,6 +1,6 @@
 from rdflib.graph import Graph
 from rdflib.namespace import Namespace, RDFS
-from rdflib.term import Node
+from rdflib.term import Node, URIRef
 from swipy.store import SWIStore
 from os import path, stat
 
@@ -60,3 +60,11 @@ class TestClass:
 		assert ntriples == 0
 		graph.store.unload(graph)
 		graph.close()
+
+	def test_07_namespaces(self):
+		s = SWIStore()
+		s.bind("example", "http://example.org/")
+		pfx = s.prefix("http://example.org/")
+		assert pfx == "example"
+		uri = s.namespace("example")
+		assert uri == URIRef("http://example.org/")
