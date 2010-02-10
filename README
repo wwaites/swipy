@@ -10,7 +10,7 @@ pyswip uses ctypes to interface with the SWI-Prolog shared library
 and we build a C module using Cython.
 
 The package provides two modules, the first, `swi' contains the
-low-level interface to prolog. The second `swirdf' provides the
+low-level interface to prolog. The second `swipy' provides the
 store that is compatible with RDFLib. To this end it bundles 
 the SeRQL package from Clio Patria which provides a SPARQL query
 interface with entailment and the Henry package which provides
