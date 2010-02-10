@@ -358,8 +358,9 @@ foreign = Functor("foreign")
 cdef class _PrologFlags:
 	_get_prolog_flag = Functor("current_prolog_flag", 2)
 	_set_prolog_flag = Functor("set_prolog_flag", 2)
+	cdef fid_t _cid
 	def __getattr__(self, attr):
-		frame = Frame()
+		self._cid = PL_open_foreign_frame()
 		if isinstance(attr, basestring):
 			attr = Atom(attr)
 		X = Variable()
@@ -368,17 +369,16 @@ cdef class _PrologFlags:
 			result = result[0]
 			if isinstance(result, Atom):
 				result = str(result)
-		frame.discard()
+		PL_discard_foreign_frame(self._cid)
 		if not result:
 			raise AttributeError("result")
 		return result
 	def __setattr__(self, attr, val):
-		frame = Frame()
+		self._cid = PL_open_foreign_frame()
 		if isinstance(attr, basestring):
 			attr = Atom(attr)
 		if isinstance(val, basestring):
 			val = Atom(val)
 		call(self._set_prolog_flag(attr, val))
-		frame.discard()
-
+		PL_discard_foreign_frame(self._cid)
 prolog_flags = _PrologFlags()

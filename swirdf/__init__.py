@@ -107,10 +107,14 @@ class SWIStore(Store):
 		self.index = 0
 		self.entailment = None
 	def open(self, directory, create=False):
+		frame = Frame()
 		call(rdf_attach_db(Atom(directory), []), module="rdf_persistency")
+		frame.discard()
 	def close(self, commit_pending_transaction=False):
 		if self.attached:
+			frame = Frame()
 			call(rdf_detach_db(), module="rdf_persistency")
+			frame.discard()
 	def attached(self):
 		frame = Frame()
 		X = Variable()
@@ -121,6 +125,7 @@ class SWIStore(Store):
 		return result
 	attached = property(attached)
 	def add(self, statement, context=None, quoted=False):
+		frame = Frame()
 		statement = map(self._fromNode, statement)
 		identifier = self._getIdentifier(context)
 		if identifier:
@@ -132,7 +137,9 @@ class SWIStore(Store):
 			func = rdf_transaction(func, log(message(self.index)))
 		call(func, module="rdf_db")
 		self.index += 1
+		frame.discard()
 	def remove(self, statement, context=None):
+		frame = Frame()
 		statement = map(self._fromNode, statement)
 		identifier = self._getIdentifier(context)
 		if identifier:
@@ -144,8 +151,10 @@ class SWIStore(Store):
 			func = rdf_transaction(func, log(message(self.index)))
 		call(func, module="rdf_db")
 		self.index += 1
+		frame.discard()
 
 	def triples(self, statement, context=None):
+		frame = Frame()
 		statement = map(self._fromNode, statement)
 		identifier = self._getIdentifier(context)
 		G, L = Variable(), Variable()
@@ -172,8 +181,10 @@ class SWIStore(Store):
 				else self._toNode(X)
 				for X in statement]
 			yield row, context
+		frame.discard()
 
 	def load(self, filename, context=None, format="xml"):
+		frame = Frame()
 		file = Atom(filename)
 		if format == "xml":
 			identifier = self._getIdentifier(context)
@@ -184,13 +195,17 @@ class SWIStore(Store):
 		elif format == "n3":
 			call(n3_load(file), module="n3_load")
 			call(compile_all(), module="n3_to_prolog")
+		frame.discard()
 
 	def unload(self, context=None):
+		frame = Frame()
 		identifier = self._getIdentifier(context)
 		if identifier:
 			call(rdf_unload(identifier), module="rdf_db")
+		frame.discard()
 
 	def query(self, q, entailmod="rdf"):
+		frame = Frame()
 		entailmod = Atom(entailmod)
 		q = Atom(q)
 		R = Variable()
@@ -202,7 +217,7 @@ class SWIStore(Store):
 				yield [self._toNode(x.value) for x in result.args]
 			else:
 				raise ValueError("bad result, %s %s" % (result, type(result)))
-			
+		frame.discard()
 
 	def _getIdentifier(self, context):
 		if isinstance(context, Graph):
