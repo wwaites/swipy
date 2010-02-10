@@ -45,11 +45,16 @@ deps = (
 	(henry, "n3_entailment"),
 	(henry, "rdf_e"),
 )
-prolog_flags.verbose = 'normal'
 
+## Why do we need to set verbose here? if we don't we get
+## errors about list_to_conj and get_list not found. Both
+## are defined in henry/utils.pl, even if we load it explicitly
+## we have the same problem.
+prolog_flags.verbose = 'normal'
 for loc, name in deps:
 	mod = name.split("/")[-1]
 	call(load_files([loc(Atom(name))]), module=mod)
+prolog_flags.verbose = 'silent'
 
 ##
 ## Functions from rdf_db
@@ -75,6 +80,7 @@ rdf_current_db = Functor("rdf_current_db")
 ## Functors from Henry
 ##
 n3_load = Functor("n3_load")
+compile_all = Functor("compile_all", 0)
 
 ##
 ## Terms used throughout
@@ -177,10 +183,12 @@ class SWIStore(Store):
 			call(rdf_load(file, options), module="rdf_db")
 		elif format == "n3":
 			call(n3_load(file), module="n3_load")
+			call(compile_all(), module="n3_to_prolog")
+
 	def unload(self, context=None):
 		identifier = self._getIdentifier(context)
 		if identifier:
-			call(rdf_unload(identifier))
+			call(rdf_unload(identifier), module="rdf_db")
 
 	def query(self, q, entailmod="rdf"):
 		entailmod = Atom(entailmod)

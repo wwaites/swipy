@@ -31,11 +31,14 @@ class TestClass:
 		store.entailment = "rdfs"
 		assert _count() == 6562
 		open("test-rdfs.n3", "w+").write(graph.serialize(format="n3"))
+		store.unload()
 
 	def test_10_n3(self):
 		store = SWIStore()
-		store.load(entail_test, format="n3")
 		graph = Graph(store, "entailment")
+		store.load(entail_test, format="n3")
 		store.entailment = "n3"
-		for k in graph.triples((None, None, URIRef("http://example.org/bar"))):
-			print k
+		i = 0
+		for i, k in enumerate(store.triples((None, None, None))):
+			pass
+		assert i == 1

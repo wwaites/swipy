@@ -24,7 +24,7 @@ class TestClass:
 		assert i == 572
 		graph.store.unload(graph)
 	def test_03_load(self):
-		graph = Graph("SWIStore")
+		graph = Graph("SWIStore", identifier="test")
 		graph.store.load(cofog_test, graph)
 		for i, statement in enumerate(graph.triples((None, RDFS.label, None))):
 			for n in statement:

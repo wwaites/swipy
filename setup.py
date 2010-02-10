@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import sys, os, re
 
-version = '0.3-git'
+version = '0.4'
 
 def swipl_config():
 	def get_config(prog):
@@ -33,7 +33,7 @@ def swipl_config():
 	else:
 		rev = os.popen("git describe --always --tags 2> /dev/null").read().strip()
 		if rev:
-			version = "git-%s" % (rev,)
+			version = "%s-git-%s" % (version, rev)
 	if rev:
 		cfg = open("swi_config.pyx", "w+")
 		cfg.write("""\

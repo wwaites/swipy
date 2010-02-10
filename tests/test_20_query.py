@@ -14,4 +14,5 @@ class TestClass:
 		for i,row in enumerate(graph.store.query("SELECT * FROM <qtest> WHERE { ?s ?p ?o }")):
 			pass
 		assert i == 6096
+		graph.store.unload(graph)
 
