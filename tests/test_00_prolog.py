@@ -7,6 +7,9 @@ class TestClass(object):
 		a = Atom("a")
 		assert str(a) == "a"
 
+		b = Atom("b/c")
+		assert str(b) == "'b/c'"
+
 		frame.discard()
 
 	def test_01_functor(self):
@@ -20,6 +23,15 @@ class TestClass(object):
 		g = Functor("g", 2)
 		t = g(t,"hello")
 		assert str(t) == 'g(f(1), "hello")'
+
+		t = comma(f(1), f(2))
+		assert str(t) == 'f(1), f(2)'
+
+		t = colon(Atom("a"), Atom("b"))
+		assert str(t) == 'a:b'
+
+		t = clause(f(1), f(2))
+		assert str(t) == 'f(1) :- f(2)'
 
 		frame.discard()
 

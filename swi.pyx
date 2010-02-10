@@ -1,5 +1,6 @@
 cimport swi
 include "swi_config.pyx"
+import re
 
 class PrologError(Exception):
 	"""Exception in Prolog"""
@@ -32,6 +33,8 @@ cdef class Frame:
 		else:
 			raise PrologError("Frame Already Closed")
 
+_atom_re = re.compile("^[a-z][a-zA-Z0-9]*$")
+
 cdef class Atom:
 	cdef atom_t _atom
 	def __cinit__(self, char *name=NULL):
@@ -56,9 +59,13 @@ cdef class Atom:
 			return "(null)"
 	name = property(name)
 	def __str__(self):
-		return str(self.name)
+		name = self.name
+		if _atom_re.match(name):
+			return str(name)
+		else:
+			return str("'" + name + "'")
 	def __repr__(self):
-		return "Atom('%s')" % self
+		return "Atom('%s')" % self.name
 	def __richcmp__(self, other, op):
 		if op == 2:
 			return isinstance(other, Atom) and self.name == other.name
@@ -94,7 +101,7 @@ cdef class Functor:
 		swi.PL_cons_functor_v(t, self._functor, a)
 		return Term().ref(t)
 	def name(self):
-		return str(self._atom)
+		return self._atom.name
 	name = property(name)
 		
 
@@ -182,10 +189,18 @@ cdef class Term:
 		cdef int t
 		t = swi.PL_term_type(self._term)
 		if t == PL_TERM and not PL_is_list(self._term):
-			ret = "%s(" % self.functor.name
-			ret += ", ".join(map(str, self.args))
-			ret += ")"
-			return ret
+			name = self.functor.name
+			if name == ":":
+				return "%s:%s" % self.args
+			elif name == ",":
+				return "%s, %s" % self.args
+			elif name == ":-":
+				return "%s :- %s" % self.args
+			else:
+				ret = "%s(" % name
+				ret += ", ".join(map(str, self.args))
+				ret += ")"
+				return ret
 		else:
 			return str(self.value)
 	def __repr__(self):
@@ -220,7 +235,7 @@ cdef class Variable:
 	value = property(get_value, set_value)
 
 	def __str__(self):
-		return "V(%d)" % (<int>self._term)
+		return "V%d" % (<int>self._term)
 	def __repr__(self):
 		return str(self)
 
