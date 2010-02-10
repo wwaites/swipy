@@ -17,7 +17,6 @@ def swipl_config():
 			config = get_config("pl")
 		except:
 			raise RuntimeError("Could not find SWI-Prolog - is it on the PATH?")
-	print config
 	include_dir = os.path.join(config["PLBASE"], "include")
 	library_dir = os.path.join(config["PLBASE"], "lib")
 	library_dir = os.path.join(library_dir, config["PLARCH"])
