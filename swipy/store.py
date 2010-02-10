@@ -261,4 +261,4 @@ class SWIStore(Store):
 		return Literal(term) ## try our best
 		#raise ValueError("Wrong Term: %s" % (repr(term),))
 
-register("SWIStore", Store, "swipy.swirdf", "SWIStore")
+register("SWIStore", Store, "swipy.store", "SWIStore")
