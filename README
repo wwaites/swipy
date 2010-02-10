@@ -51,7 +51,7 @@ Make sure `swipl' or `pl' is in your path, then,
 
 == Using ==
 
-	from swipy.swirdf import SWIStore
+	from swipy.store import SWIStore
 	from rdflib.graph import Graph
 
 	g = Graph(SWIStore())
