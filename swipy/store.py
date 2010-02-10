@@ -103,6 +103,19 @@ entailment2 = Functor("entailment", 2)
 #### SWI-Prolog backed RDFLib Store
 ####
 class SWIStore(Store):
+	"""
+	RDFLib Store backed by SWI-Prolog
+
+	Assigning a known entailment type to the entailment method will
+	cause the triples() and query() methods to return entailed triples
+	in addition to the ones asserted directly in the store. Entailment
+	methods are those known to the SeRQL module.
+
+	The open and close methods activate (and deactivate) persistence
+	for the store. If a store is attached using the open method any
+	modifications to the store are run inside a transaction, which
+	itself enables journalling.
+	"""
 	context_aware = True
 	def __init__(self):
 		self.index = 0
@@ -110,9 +123,15 @@ class SWIStore(Store):
 
 	@framed
 	def open(self, directory, create=False):
+		"""
+		Make the store persistent by attaching to the given directory
+		"""
 		call(rdf_attach_db(Atom(directory), []), module="rdf_persistency")
 	@framed
 	def close(self, commit_pending_transaction=False):
+		"""
+		If the store is attached, detatch it
+		"""
 		if self.attached:
 			call(rdf_detach_db(), module="rdf_persistency")
 	@framed
@@ -126,6 +145,12 @@ class SWIStore(Store):
 
 	@framed
 	def load(self, filename, context=None, format="xml"):
+		"""
+		Load the given file into the store. Ignores the context argument.
+		This supports XML files via rdf_db:rdf_load as well as N3 files
+		via henry:n3_load according to the format argument. This is much
+		faster than using graph.parse()
+		"""
 		file = Atom(filename)
 		if format == "xml":
 			identifier = self._getIdentifier(context)
@@ -138,6 +163,9 @@ class SWIStore(Store):
 			call(compile_all(), module="n3_to_prolog")
 	@framed
 	def unload(self, context=None):
+		"""
+		Unload any asserted triples in the named graph.
+		"""
 		identifier = self._getIdentifier(context)
 		if identifier:
 			call(rdf_unload(identifier), module="rdf_db")
