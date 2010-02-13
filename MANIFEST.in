@@ -9,4 +9,5 @@ include swirdf/*.py
 recursive-include swirdf/henry *
 recursive-include swirdf/SeRQL *
 include tests/*.py
+include tests/*.n3
 include tests/*.rdf
