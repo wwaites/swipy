@@ -33,7 +33,7 @@ def swipl_config():
 	else:
 		rev = os.popen("git describe --always --tags 2> /dev/null").read().strip()
 		if rev:
-			version = "%s-git-%s" % (version, rev)
+			version = rev
 	if rev:
 		cfg = open("swi_config.pyx", "w+")
 		cfg.write("""\
