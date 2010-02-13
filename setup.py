@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import sys, os, re
 
-version = '0.4'
+version = '0.5'
 
 def swipl_config():
 	def get_config(prog):
