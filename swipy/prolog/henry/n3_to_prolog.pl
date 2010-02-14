@@ -1,7 +1,10 @@
 :- module(n3_to_prolog,[n3_prolog_clause/1,compile_all/0]).
 
 :- use_module(skolemize).
-:- use_module(utils).
+:- use_module(utils,
+              [ list_to_conj/2,
+	        get_list/2
+	      ]).
 :- consult(namespaces).
 
 :- use_module(library('semweb/rdf_db'),

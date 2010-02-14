@@ -13,7 +13,11 @@
 :- use_module(library('semweb/rdfs'),
               [ rdfs_list_to_prolog_list/2 ]).
 :- use_module(builtins).
-:- use_module(utils).
+:- use_module(utils,
+              [ list_to_conj/2,
+	        get_list/2,
+	        pl_list_to_rdf_list/3
+	      ]).
 
 :- dynamic rdf_e/3.
 
