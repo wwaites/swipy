@@ -33,7 +33,7 @@ cdef class Frame:
 		else:
 			raise PrologError("Frame Already Closed")
 
-_atom_re = re.compile("^[a-z][a-zA-Z0-9]*$")
+_atom_re = re.compile("^[a-z][a-zA-Z0-9_]*$")
 
 cdef class Atom:
 	cdef atom_t _atom
@@ -192,6 +192,8 @@ cdef class Term:
 			name = self.functor.name
 			if name == ":":
 				return "%s:%s" % self.args
+			elif name == "/":
+				return "%s/%s" % self.args
 			elif name == ",":
 				return "%s, %s" % self.args
 			elif name == ":-":
